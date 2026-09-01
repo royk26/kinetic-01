@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.chrome-*/
+desktop.png
+mobile.png
+mobile-fixed.png
+*.log
