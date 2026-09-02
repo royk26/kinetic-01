@@ -36,6 +36,11 @@ await call('Log.enable');
 if (process.argv[3] === 'mobile') {
   await call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
 }
+if (process.argv[4] === 'reduced') {
+  await call('Emulation.setEmulatedMedia', {
+    features: [{ name: 'prefers-reduced-motion', value: 'reduce' }],
+  });
+}
 await call('Page.reload');
 await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -49,6 +54,9 @@ const result = await call('Runtime.evaluate', {
     scrollHeight: document.documentElement.scrollHeight,
     canvas: !!document.querySelector('#orb-canvas'),
     webgl: !!document.querySelector('#orb-canvas')?.getContext('webgl2'),
+    canvasDisplay: getComputedStyle(document.querySelector('#orb-canvas')).display,
+    reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+    stageClasses: document.querySelector('.orb-stage')?.className,
     overflows: Array.from(document.querySelectorAll('body *'))
       .filter((el) => el.getBoundingClientRect().right > innerWidth + 1 || el.getBoundingClientRect().left < -1)
       .slice(0, 20)
