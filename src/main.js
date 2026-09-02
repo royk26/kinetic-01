@@ -12,121 +12,230 @@ if (prefersReducedMotion.matches) {
   });
 }
 
-if (canvas && stage && !prefersReducedMotion.matches) {
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
-  camera.position.z = 8.2;
+if (canvas && stage) {
+  try {
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+    camera.position.set(0, 0, 8.8);
 
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: true,
+      powerPreference: 'high-performance',
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.35;
+    renderer.setClearColor(0x000000, 0);
+    stage.classList.add('is-webgl');
 
-  const group = new THREE.Group();
-  scene.add(group);
+    scene.add(new THREE.HemisphereLight(0xf5f5f0, 0x111500, 1.45));
+    const keyLight = new THREE.PointLight(0xccff00, 42, 18, 1.8);
+    keyLight.position.set(4.5, 3.2, 5.5);
+    scene.add(keyLight);
+    const rimLight = new THREE.PointLight(0x7b49ff, 28, 15, 2);
+    rimLight.position.set(-4, -2.5, 3);
+    scene.add(rimLight);
 
-  const count = window.innerWidth < 700 ? 1500 : 3200;
-  const positions = new Float32Array(count * 3);
-  const basePositions = new Float32Array(count * 3);
-  const colors = new Float32Array(count * 3);
-  const lime = new THREE.Color('#ccff00');
-  const ivory = new THREE.Color('#f5f5f0');
+    const sculpture = new THREE.Group();
+    sculpture.rotation.set(-0.18, -0.5, 0.08);
+    scene.add(sculpture);
 
-  for (let index = 0; index < count; index += 1) {
-    const radius = 2.05 + Math.random() * 0.32;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    const offset = index * 3;
-    const x = radius * Math.sin(phi) * Math.cos(theta);
-    const y = radius * Math.sin(phi) * Math.sin(theta);
-    const z = radius * Math.cos(phi);
-    positions.set([x, y, z], offset);
-    basePositions.set([x, y, z], offset);
-    const color = lime.clone().lerp(ivory, Math.random() * 0.42);
-    colors.set([color.r, color.g, color.b], offset);
-  }
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  const material = new THREE.PointsMaterial({ size: 0.026, vertexColors: true, transparent: true, opacity: 0.92, blending: THREE.AdditiveBlending, depthWrite: false });
-  const particles = new THREE.Points(geometry, material);
-  group.add(particles);
-
-  const rings = [
-    [2.65, 0.004, '#ccff00', [1.12, 0.1, 0.3]],
-    [2.82, 0.008, '#f5f5f0', [0.25, 0.82, 0]],
-    [2.52, 0.005, '#ccff00', [0.55, -0.36, 1.1]],
-  ].map(([radius, tube, color, rotation], ringIndex) => {
-    const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(radius, tube, 8, 180),
-      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: ringIndex === 1 ? 0.28 : 0.55 }),
+    const solidCore = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.72, 4),
+      new THREE.MeshStandardMaterial({
+        color: 0x4f6500,
+        emissive: 0x1b2400,
+        emissiveIntensity: 1.25,
+        metalness: 0.72,
+        roughness: 0.2,
+        flatShading: true,
+      }),
     );
-    ring.rotation.set(...rotation);
-    group.add(ring);
-    return ring;
-  });
+    sculpture.add(solidCore);
 
-  const core = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(1.68, 3),
-    new THREE.MeshBasicMaterial({ color: '#283300', wireframe: true, transparent: true, opacity: 0.18 }),
-  );
-  group.add(core);
+    const innerCore = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.22, 2),
+      new THREE.MeshBasicMaterial({
+        color: 0xccff00,
+        transparent: true,
+        opacity: 0.16,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    );
+    sculpture.add(innerCore);
 
-  const pointer = { x: 0, y: 0, targetX: 0, targetY: 0, strength: 0 };
-  let dragging = false;
-  let elapsed = 0;
+    const cage = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(2.12, 2),
+      new THREE.MeshBasicMaterial({
+        color: 0xccff00,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.5,
+        blending: THREE.AdditiveBlending,
+      }),
+    );
+    sculpture.add(cage);
 
-  stage.addEventListener('pointermove', (event) => {
-    const rect = stage.getBoundingClientRect();
-    pointer.targetX = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
-    pointer.targetY = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
-    if (dragging) pointer.strength = Math.min(1.5, pointer.strength + 0.08);
-  });
-  stage.addEventListener('pointerdown', (event) => { dragging = true; pointer.strength = 0.65; stage.setPointerCapture(event.pointerId); });
-  stage.addEventListener('pointerup', () => { dragging = false; });
-  stage.addEventListener('pointerleave', () => { dragging = false; pointer.targetX = 0; pointer.targetY = 0; });
+    const edgeGeometry = new THREE.EdgesGeometry(new THREE.DodecahedronGeometry(2.38, 1), 12);
+    const outerFrame = new THREE.LineSegments(
+      edgeGeometry,
+      new THREE.LineBasicMaterial({ color: 0xf5f5f0, transparent: true, opacity: 0.28 }),
+    );
+    sculpture.add(outerFrame);
 
-  const resize = () => {
-    const { width, height } = stage.getBoundingClientRect();
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-  };
-  new ResizeObserver(resize).observe(stage);
-  resize();
-
-  const clock = new THREE.Clock();
-  const animate = () => {
-    elapsed += Math.min(clock.getDelta(), 0.04);
-    pointer.x += (pointer.targetX - pointer.x) * 0.045;
-    pointer.y += (pointer.targetY - pointer.y) * 0.045;
-    pointer.strength *= dragging ? 0.995 : 0.94;
-
-    group.rotation.y = elapsed * 0.105 + pointer.x * 0.16;
-    group.rotation.x = Math.sin(elapsed * 0.18) * 0.08 - pointer.y * 0.14;
-    rings[0].rotation.z += 0.0017;
-    rings[1].rotation.y -= 0.0012;
-    rings[2].rotation.x += 0.0009;
-    core.rotation.y -= 0.0018;
-
-    const positionAttribute = geometry.attributes.position;
+    const count = window.innerWidth < 700 ? 1100 : 2400;
+    const particlePositions = new Float32Array(count * 3);
+    const particleColors = new Float32Array(count * 3);
+    const lime = new THREE.Color(0xccff00);
+    const violet = new THREE.Color(0x8257ff);
     for (let index = 0; index < count; index += 1) {
+      const radius = 2.48 + Math.random() * 0.82;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
       const offset = index * 3;
-      const bx = basePositions[offset];
-      const by = basePositions[offset + 1];
-      const bz = basePositions[offset + 2];
-      const wave = Math.sin(bx * 2.3 + elapsed * 1.15) * Math.cos(by * 1.7 - elapsed * 0.72);
-      const pull = 1 + wave * 0.018 + pointer.strength * 0.11 * Math.sin(bz * 3 + elapsed * 2);
-      positionAttribute.array[offset] = bx * pull;
-      positionAttribute.array[offset + 1] = by * pull;
-      positionAttribute.array[offset + 2] = bz * pull;
+      particlePositions[offset] = radius * Math.sin(phi) * Math.cos(theta);
+      particlePositions[offset + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      particlePositions[offset + 2] = radius * Math.cos(phi);
+      const color = lime.clone().lerp(violet, Math.random() * 0.38);
+      particleColors[offset] = color.r;
+      particleColors[offset + 1] = color.g;
+      particleColors[offset + 2] = color.b;
     }
-    positionAttribute.needsUpdate = true;
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
-  };
-  animate();
-  document.addEventListener('visibilitychange', () => { clock.getDelta(); });
+    const particleGeometry = new THREE.BufferGeometry();
+    particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+    const particles = new THREE.Points(
+      particleGeometry,
+      new THREE.PointsMaterial({
+        size: window.innerWidth < 700 ? 0.036 : 0.029,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.82,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    );
+    sculpture.add(particles);
+
+    const rings = [
+      [2.88, 0.012, 0xccff00, [1.1, 0.12, 0.35]],
+      [3.08, 0.009, 0xf5f5f0, [0.28, 0.88, -0.2]],
+      [2.72, 0.008, 0x8257ff, [0.62, -0.38, 1.08]],
+    ].map(([radius, tube, color, rotation], ringIndex) => {
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(radius, tube, 8, 220),
+        new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity: ringIndex === 1 ? 0.42 : 0.72,
+          blending: THREE.AdditiveBlending,
+        }),
+      );
+      ring.rotation.set(...rotation);
+      sculpture.add(ring);
+      return ring;
+    });
+
+    const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
+    const drag = { active: false, lastX: 0, lastY: 0, rotationX: -0.18, rotationY: -0.5 };
+    let elapsed = 0;
+
+    const updatePointer = (event) => {
+      const rect = stage.getBoundingClientRect();
+      pointer.targetX = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+      pointer.targetY = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+      if (drag.active) {
+        drag.rotationY += (event.clientX - drag.lastX) * 0.009;
+        drag.rotationX += (event.clientY - drag.lastY) * 0.009;
+        drag.rotationX = THREE.MathUtils.clamp(drag.rotationX, -1.25, 1.25);
+        drag.lastX = event.clientX;
+        drag.lastY = event.clientY;
+      }
+    };
+
+    stage.addEventListener('pointermove', updatePointer);
+    stage.addEventListener('pointerdown', (event) => {
+      drag.active = true;
+      drag.lastX = event.clientX;
+      drag.lastY = event.clientY;
+      stage.classList.add('is-dragging');
+      stage.setPointerCapture(event.pointerId);
+    });
+    const endDrag = (event) => {
+      drag.active = false;
+      stage.classList.remove('is-dragging');
+      if (event?.pointerId != null && stage.hasPointerCapture(event.pointerId)) stage.releasePointerCapture(event.pointerId);
+    };
+    stage.addEventListener('pointerup', endDrag);
+    stage.addEventListener('pointercancel', endDrag);
+    stage.addEventListener('pointerleave', () => {
+      if (!drag.active) {
+        pointer.targetX = 0;
+        pointer.targetY = 0;
+      }
+    });
+
+    const resize = () => {
+      const { width, height } = stage.getBoundingClientRect();
+      if (!width || !height) return;
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    };
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(stage);
+    resize();
+
+    canvas.addEventListener('webglcontextlost', (event) => {
+      event.preventDefault();
+      stage.classList.remove('is-webgl');
+      stage.classList.add('is-fallback');
+    });
+
+    const reducedMotion = prefersReducedMotion.matches;
+    const clock = new THREE.Clock();
+    const animate = () => {
+      elapsed += Math.min(clock.getDelta(), 0.04);
+      pointer.x += (pointer.targetX - pointer.x) * 0.075;
+      pointer.y += (pointer.targetY - pointer.y) * 0.075;
+
+      const autoSpin = reducedMotion ? 0 : elapsed * 0.16;
+      sculpture.rotation.y += ((drag.rotationY + autoSpin + pointer.x * 0.24) - sculpture.rotation.y) * 0.075;
+      sculpture.rotation.x += ((drag.rotationX - pointer.y * 0.18) - sculpture.rotation.x) * 0.075;
+      sculpture.rotation.z = 0.08 + pointer.x * pointer.y * 0.06;
+      camera.position.x += (pointer.x * 0.42 - camera.position.x) * 0.055;
+      camera.position.y += (-pointer.y * 0.32 - camera.position.y) * 0.055;
+      camera.lookAt(0, 0, 0);
+
+      if (!reducedMotion) {
+        solidCore.rotation.y += 0.0024;
+        solidCore.rotation.x -= 0.0011;
+        innerCore.rotation.y -= 0.0042;
+        cage.rotation.y -= 0.0018;
+        outerFrame.rotation.x += 0.0011;
+        particles.rotation.y += 0.0008;
+        rings[0].rotation.z += 0.0022;
+        rings[1].rotation.y -= 0.0015;
+        rings[2].rotation.x += 0.0012;
+        const pulse = 1 + Math.sin(elapsed * 1.6) * 0.045;
+        innerCore.scale.setScalar(pulse);
+      }
+
+      keyLight.position.x = 4.5 + pointer.x * 2.4;
+      keyLight.position.y = 3.2 - pointer.y * 2;
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    };
+    animate();
+    document.addEventListener('visibilitychange', () => clock.getDelta());
+  } catch (error) {
+    console.error('Unable to initialize the 3D scene.', error);
+    stage.classList.add('is-fallback');
+  }
 }
 
 const revealObserver = new IntersectionObserver((entries) => {
