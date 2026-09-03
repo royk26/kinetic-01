@@ -40,9 +40,9 @@ button { font: inherit; }
 .eyebrow { display: flex; align-items: center; gap: .65rem; color: var(--lime); }
 .eyebrow span { width: .46rem; height: .46rem; background: var(--lime); animation: pulse 1.8s ease-in-out infinite; }
 h1, h2, h3, p { margin-top: 0; }
-h1, h2, .contact-main a { font-family: "Bodoni Moda", serif; }
+h1, h2 { font-family: "Bodoni Moda", serif; }
 h1 { max-width: 850px; margin: 2.1rem 0 2.2rem; text-transform: uppercase; font-size: clamp(4rem, 8.2vw, 9rem); line-height: .79; letter-spacing: -.072em; overflow-wrap: anywhere; }
-h1 em, h2 em, .contact-main em { color: var(--lime); font-weight: 400; }
+h1 em, h2 em { color: var(--lime); font-weight: 400; }
 .intro { max-width: 36rem; color: #b9b9af; font-size: clamp(1.05rem, 1.45vw, 1.35rem); line-height: 1.55; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: .8rem; margin-top: 2.6rem; }
 .button { min-height: 3.55rem; padding: 0 1.55rem; display: inline-flex; align-items: center; justify-content: space-between; gap: 2rem; border: 1px solid var(--ivory); text-transform: uppercase; letter-spacing: .12em; font-size: .69rem; font-weight: 800; transition: background .25s, color .25s, transform .25s; }
@@ -121,11 +121,12 @@ h1 em, h2 em, .contact-main em { color: var(--lime); font-weight: 400; }
 
 .contact { padding-bottom: 2.2rem; background: var(--lime); color: var(--black); }
 .contact .section-index { color: #384700; }
-.contact-main { padding: 3rem 0 10rem; }
+.contact-main { padding: clamp(3rem, 6vw, 5rem) 0 clamp(7rem, 11vw, 11rem); }
 .contact-main p { text-transform: uppercase; letter-spacing: .15em; font-size: .72rem; font-weight: 800; }
-.contact-main a { display: block; position: relative; width: max-content; max-width: 100%; font-size: clamp(4.5rem, 11vw, 12rem); line-height: .78; text-transform: uppercase; letter-spacing: -.075em; }
-.contact-main em { color: var(--black); }
-.contact-main a span { position: absolute; top: 0; right: -1.2em; font-family: sans-serif; font-size: .18em; letter-spacing: 0; }
+.contact-main a { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 1rem; align-items: start; width: 100%; max-width: 100%; font-family: "Hanken Grotesk", sans-serif; font-size: clamp(4rem, 9vw, 10rem); font-weight: 800; line-height: .86; text-transform: uppercase; letter-spacing: -.055em; }
+.contact-line { grid-column: 1; display: block; width: fit-content; white-space: nowrap; }
+.contact-line + .contact-line { margin-top: .08em; }
+.contact-arrow { grid-column: 2; grid-row: 1; margin-top: .18em; font-size: .17em; line-height: 1; letter-spacing: 0; }
 footer { padding-top: 2rem; border-top: 1px solid rgba(10,10,10,.35); display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 2rem; font-size: .75rem; line-height: 1.5; text-transform: uppercase; letter-spacing: .08em; }
 footer .logo span { color: var(--black); }
 footer div { display: flex; flex-direction: column; }
@@ -159,7 +160,7 @@ footer a:hover { text-decoration: line-through; }
   .project-visual, .project-tall .project-visual, .project-full .project-visual { min-height: 25rem; }
   .project-copy-row { display: block; }.project h3 { font-size: 2.7rem; }
   .process-node { min-height: 23rem; }
-  .contact-main { padding-bottom: 7rem; }.contact-main a { font-size: clamp(3.7rem, 18vw, 6rem); }
+  .contact-main { padding-bottom: 7rem; }.contact-main a { column-gap: .5rem; font-size: clamp(3rem, 13.5vw, 4.8rem); line-height: .9; letter-spacing: -.045em; }
   footer { grid-template-columns: 1fr; }
 }
 
